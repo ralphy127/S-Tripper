@@ -17,17 +17,25 @@ async function apiRequest(endpoint, options = {}) {
   const data = await response.json().catch(() => null);
   
   if (!response.ok) {
-    throw new Error(data?.detail || `HTTP ${response.status}`);
+    let errorMessage = `HTTP ${response.status}`;
+    if (data?.detail) {
+      if (typeof data.detail === 'string') {
+        errorMessage = data.detail;
+      } else if (Array.isArray(data.detail)) {
+        errorMessage = data.detail.map(e => e.msg).join(', ');
+      }
+    }
+    throw new Error(errorMessage);
   }
   
   return data;
 }
 
 export const authAPI = {
-  register: async (email, password) => {
+  register: async (email, nickname, password) => {
     return apiRequest('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, nickname, password }),
     });
   },
 
@@ -63,5 +71,12 @@ export const tripAPI = {
 
   getTrip: async (tripId) => {
     return apiRequest(`/trips/${tripId}`);
+  },
+
+  addMember: async (tripId, nickname) => {
+    return apiRequest(`/trips/${tripId}/members`, {
+      method: 'POST',
+      body: JSON.stringify({ nickname }),
+    });
   },
 };

@@ -9,6 +9,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key = True, index = True)
     email: Mapped[str] = mapped_column(String, unique = True, index = True, nullable = False)
+    nickname: Mapped[str] = mapped_column(String, unique = True, index = True, nullable = False)
     hashed_password: Mapped[str] = mapped_column(nullable = False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default = False, nullable = False)
     organized_trips: Mapped[List["Trip"]] = relationship(

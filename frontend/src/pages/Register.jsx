@@ -4,6 +4,7 @@ import { useAuth } from '../AuthContext';
 
 export default function Register() {
   const [email, setEmail] = useState('');
+  const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,7 +25,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      await register(email, password);
+      await register(email, nickname, password);
       
       await login(email, password);
 
@@ -49,6 +50,19 @@ export default function Register() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px' }}>
+            Nickname:
+          </label>
+          <input
+            type="text"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
             required
             style={{ width: '100%', padding: '8px', fontSize: '14px' }}
           />

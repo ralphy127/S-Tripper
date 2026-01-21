@@ -3,6 +3,7 @@ from typing import Optional
 
 class UserBase(BaseModel):
     email: EmailStr
+    nickname: str
 
 class UserCreate(UserBase):
     password: str
@@ -30,9 +31,22 @@ class TripCreate(TripBase):
     description: str | None
     pass
 
+class MemberResponse(BaseModel):
+    class Config:
+        from_attributes = True
+
+    id: int
+    nickname: str
+
 class TripResponse(TripBase):
     class Config:
         from_attributes = True
 
     id: int
+    name: str
+    description: str | None
     organizer_id: int
+    members: list[MemberResponse] = []
+
+class AddMemberRequest(BaseModel):
+    nickname: str

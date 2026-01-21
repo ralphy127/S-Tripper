@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response
-from passlib.context import CryptContext
+import bcrypt
 from sqlalchemy.orm import Session
 from app.database import get_database_session
 from app.models import User
@@ -10,17 +10,11 @@ from app.settings import get_settings
 
 session_service = SessionService(get_settings().secret_key)
 
-def hash_password(
-    password: str,
-    hasher: CryptContext = CryptContext(schemes = ['bcrypt'], deprecated = 'auto')
-) -> str:
-    return hasher.hash(password)
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-def verify_password(
-    password: str,
-    hashed_password: str,
-    hasher: CryptContext = CryptContext(schemes = ['bcrypt'], deprecated = 'auto')) -> bool:
-    return hasher.verify(password, hashed_password)
+def verify_password(password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 def create_auth_router() -> APIRouter:
     router = APIRouter(prefix = '/auth', tags = ['authentication'])
@@ -33,8 +27,15 @@ def create_auth_router() -> APIRouter:
                 status_code = status.HTTP_400_BAD_REQUEST,
                 detail = 'Email already registered')
         
+        existing_nickname = db.query(User).filter(User.nickname == user_data.nickname).first()
+        if existing_nickname is not None:
+            raise HTTPException(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                detail = 'Nickname already taken')
+        
         new_user = User(
             email = user_data.email,
+            nickname = user_data.nickname,
             hashed_password = hash_password(user_data.password))
         db.add(new_user)
         db.commit()

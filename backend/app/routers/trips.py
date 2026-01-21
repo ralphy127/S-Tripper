@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_database_session
-from app.models import User, Trip
-from app.schemas import TripCreate, TripResponse
+from app.models import User, Trip, TripMember
+from app.schemas import TripCreate, TripResponse, AddMemberRequest
 from app.dependencies import get_current_user
 from app.session_service import SessionService
 from app.settings import get_settings
@@ -62,5 +62,48 @@ def create_trips_router() -> APIRouter:
             )
         
         return trip
+
+    @router.post('/{trip_id}/members', status_code = status.HTTP_201_CREATED)
+    def add_member(
+        trip_id: int,
+        request: AddMemberRequest,
+        current_user: User = Depends(get_current_user),
+        database: Session = Depends(get_database_session)
+    ):
+        trip = database.query(Trip).filter(Trip.id == trip_id).first()
+        if trip is None:
+            raise HTTPException(
+                status_code = status.HTTP_404_NOT_FOUND,
+                detail = "Trip not found"
+            )
+        if trip.organizer_id != current_user.id:
+            raise HTTPException(
+                status_code = status.HTTP_403_FORBIDDEN,
+                detail = "Only the organizer can add members"
+            )
+        user_to_add = database.query(User).filter(User.nickname == request.nickname).first()
+        if user_to_add is None:
+            raise HTTPException(
+                status_code = status.HTTP_404_NOT_FOUND,
+                detail = "User not found"
+            )
+        if user_to_add.id == current_user.id:
+            raise HTTPException(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                detail = "Cannot add yourself as a member"
+            )
+        existing_member = database.query(TripMember).filter(
+            TripMember.trip_id == trip_id,
+            TripMember.user_id == user_to_add.id
+        ).first()
+        if existing_member:
+            raise HTTPException(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                detail = "User is already a member"
+            )
+        new_member = TripMember(trip_id = trip_id, user_id = user_to_add.id)
+        database.add(new_member)
+        database.commit()
+        return {"message": "Member added successfully"}
 
     return router

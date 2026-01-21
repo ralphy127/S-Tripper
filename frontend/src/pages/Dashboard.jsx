@@ -11,6 +11,8 @@ export default function Dashboard() {
   const [tripName, setTripName] = useState('');
   const [tripDescription, setTripDescription] = useState('');
   const [creating, setCreating] = useState(false);
+  const [memberNicknames, setMemberNicknames] = useState({});
+  const [addingMember, setAddingMember] = useState({});
   
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -57,6 +59,25 @@ export default function Dashboard() {
     }
   };
 
+  const handleAddMember = async (tripId) => {
+    const nickname = memberNicknames[tripId]?.trim();
+    if (!nickname) {
+      setError('Please enter a nickname');
+      return;
+    }
+    try {
+      setAddingMember((prev) => ({ ...prev, [tripId]: true }));
+      setError('');
+      await tripAPI.addMember(tripId, nickname);
+      setMemberNicknames((prev) => ({ ...prev, [tripId]: '' }));
+      await loadTrips();
+    } catch (err) {
+      setError('Failed to add member: ' + err.message);
+    } finally {
+      setAddingMember((prev) => ({ ...prev, [tripId]: false }));
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -80,7 +101,7 @@ export default function Dashboard() {
         <div>
           <h1 style={{ margin: 0 }}>Dashboard</h1>
           <p style={{ margin: '5px 0', color: '#666' }}>
-            Logged in as: <strong>{user?.email}</strong>
+            Logged in as: <strong>{user?.nickname}</strong>
             {user?.role === 'ADMIN' && ' (Admin)'}
           </p>
         </div>
@@ -198,9 +219,52 @@ export default function Dashboard() {
                   ) : (
                     <span>Member</span>
                   )}
-                  {' | '}
-                  Trip ID: {trip.id}
                 </p>
+                {trip.members && trip.members.length > 0 && (
+                  <div style={{ marginTop: '10px' }}>
+                    <p style={{ margin: '0 0 5px 0', fontSize: '13px', fontWeight: 'bold' }}>Members:</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                      {trip.members.map((member) => (
+                        <span
+                          key={member.id}
+                          style={{
+                            padding: '3px 8px',
+                            backgroundColor: '#e9ecef',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                          }}
+                        >
+                          {member.nickname}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {trip.organizer_id === user?.id && (
+                  <div style={{ marginTop: '10px', display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      placeholder="Enter nickname"
+                      value={memberNicknames[trip.id] || ''}
+                      onChange={(e) => setMemberNicknames((prev) => ({ ...prev, [trip.id]: e.target.value }))}
+                      style={{ padding: '6px', fontSize: '13px', flex: 1 }}
+                    />
+                    <button
+                      onClick={() => handleAddMember(trip.id)}
+                      disabled={addingMember[trip.id]}
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                      }}
+                    >
+                      {addingMember[trip.id] ? 'Adding...' : 'Add Member'}
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
