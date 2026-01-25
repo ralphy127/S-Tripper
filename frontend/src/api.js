@@ -62,16 +62,31 @@ export const tripAPI = {
     return apiRequest('/trips/');
   },
 
-  createTrip: async (name, description) => {
+  createTrip: async (name, description, budget) => {
     return apiRequest('/trips/', {
       method: 'POST',
-      body: JSON.stringify({ name, description }),
+      body: JSON.stringify({ name, description, budget }),
     });
   },
 
   getTrip: async (tripId) => {
     return apiRequest(`/trips/${tripId}`);
   },
+
+  
+  updateTrip: async (tripId, name, description, budget) => {
+    return apiRequest(`/trips/${tripId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name, description, budget }),
+    });
+  },
+
+  deleteTrip: async (tripId) => {
+    return apiRequest(`/trips/${tripId}`, {
+      method: 'DELETE',
+    });
+  },
+  
 
   addMember: async (tripId, nickname) => {
     return apiRequest(`/trips/${tripId}/members`, {

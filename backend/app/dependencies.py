@@ -1,9 +1,9 @@
 from fastapi import Depends, HTTPException, status, Cookie
 from sqlalchemy.orm import Session
 from typing import Optional
-from app.database import get_database_session
-from app.models import User
-from app.session_service import SessionService, get_session_service
+from .database import get_database_session
+from .models import User
+from .session_service import SessionService, get_session_service
 
 def get_current_user(
     session: Optional[str] = Cookie(None),

@@ -1,8 +1,3 @@
-/**
- * Authentication context provider.
- * Manages authentication state and provides auth methods to components.
- * State is derived from backend - no localStorage used.
- */
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from './api';
 

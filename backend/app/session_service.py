@@ -1,6 +1,6 @@
 from fastapi import Depends
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
-from app.settings import Settings, get_settings
+from .settings import Settings, get_settings
 
 class SessionService:
     def __init__(self, secret_key : str):

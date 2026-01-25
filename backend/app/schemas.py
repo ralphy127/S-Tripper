@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from pydantic import BaseModel, EmailStr, ConfigDict
+from datetime import datetime
+from typing import List, Optional
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -8,9 +9,14 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
+class UserPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    nickname: str
+
 class UserResponse(UserBase):
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     is_admin: bool
@@ -24,29 +30,25 @@ class LoginResponse(BaseModel):
     user: UserResponse
 
 class TripBase(BaseModel):
-    pass
+    name: str
+    description: str | None = None
+    budget: float | None = 0.0
 
 class TripCreate(TripBase):
-    name: str
-    description: str | None
     pass
 
-class MemberResponse(BaseModel):
-    class Config:
-        from_attributes = True
+class TripMembershipResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-    id: int
-    nickname: str
+    joined_at: datetime
+    user: UserPublic
 
 class TripResponse(TripBase):
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
-    name: str
-    description: str | None
-    organizer_id: int
-    members: list[MemberResponse] = []
+    organizer: UserPublic
+    memberships: List[TripMembershipResponse] = []
 
 class AddMemberRequest(BaseModel):
     nickname: str

@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.settings import Settings
-from app.database import Base, create_db_engine
-from app.session_service import SessionService
-from app.routers.auth import create_auth_router
-from app.routers.trips import create_trips_router
+from .settings import Settings
+from .database import Base, create_db_engine
+from .session_service import SessionService
+from .auth import create_auth_router
+from .trips import create_trips_router
 
 settings = Settings()
 engine = create_db_engine(settings)

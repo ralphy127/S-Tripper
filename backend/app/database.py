@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase
-from app.settings import Settings, get_settings
+from .settings import Settings, get_settings
 
 
 def create_db_engine(settings: Settings) -> Engine:
