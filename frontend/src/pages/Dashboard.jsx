@@ -3,20 +3,37 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { tripAPI } from '../api';
 
-const DashboardHeader = ({ user, onLogout }) => (
-  <div style={STYLES.header}>
-    <div>
-      <h1 style={{ margin: 0 }}>Dashboard</h1>
-      <p style={{ margin: '5px 0', color: '#666' }}>
-        Zalogowany jako: <strong>{user?.nickname}</strong>
-        {user?.is_admin && ' (Admin)'}
-      </p>
+const DashboardHeader = ({ user, onLogout }) => {
+  const navigate = useNavigate();
+
+  return (
+    <div style={STYLES.header}>
+      <div>
+        <h1 style={{ margin: 0 }}>Dashboard</h1>
+        <p style={{ margin: '5px 0', color: '#666' }}>
+          Zalogowany jako: <strong>{user?.nickname}</strong>
+          {user?.is_admin && <span style={{ color: '#6610f2', fontWeight: 'bold' }}> (Admin)</span>}
+        </p>
+      </div>
+      
+      <div style={{ display: 'flex', gap: '10px' }}>
+        {/* Ten guzik pojawi się tylko dla Admina */}
+        {user?.is_admin && (
+          <button 
+            onClick={() => navigate('/admin')} 
+            style={{ ...STYLES.button, ...STYLES.adminButton }}
+          >
+            Panel Admina
+          </button>
+        )}
+        
+        <button onClick={onLogout} style={{ ...STYLES.button, ...STYLES.logoutButton }}>
+          Wyloguj
+        </button>
+      </div>
     </div>
-    <button onClick={onLogout} style={{ ...STYLES.button, ...STYLES.logoutButton }}>
-      Wyloguj
-    </button>
-  </div>
-);
+  );
+};
 
 const CreateTripForm = ({ onCreate }) => {
   const [name, setName] = useState('');
@@ -295,6 +312,11 @@ const STYLES = {
     marginBottom: '30px',
     borderBottom: '1px solid #ddd',
     paddingBottom: '20px'
+  },
+  adminButton: {
+    padding: '8px 16px',
+    backgroundColor: '#6610f2',
+    color: 'white',
   },
   card: {
     padding: '25px',

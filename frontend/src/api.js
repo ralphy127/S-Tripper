@@ -95,3 +95,15 @@ export const tripAPI = {
     });
   },
 };
+
+export const adminAPI = {
+  getAllUsers: async () => {
+    return apiRequest('/auth/users');
+  },
+
+  deleteUser: async (userId) => {
+    return apiRequest(`/auth/users/${userId}`, {
+      method: 'DELETE',
+    });
+  },
+};

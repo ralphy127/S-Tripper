@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 import bcrypt
 from sqlalchemy.orm import Session
@@ -87,5 +88,35 @@ def create_auth_router() -> APIRouter:
     @router.get('/me', response_model=UserResponse)
     def get_me(current_user: User = Depends(get_current_user)) -> User:
         return current_user
+    
+    @router.get('/users', response_model=List[UserResponse])
+    def get_all_users(
+        db: Session = Depends(get_database_session),
+        current_user: User = Depends(get_current_user)
+    ):
+        if not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Brak uprawnień administratora")
+        return db.query(User).all()
+
+    @router.delete('/users/{user_id}', status_code=status.HTTP_204_NO_CONTENT)
+    def delete_user(
+        user_id: int,
+        db: Session = Depends(get_database_session),
+        current_user: User = Depends(get_current_user)
+    ):
+        if not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Brak uprawnień administratora")
+
+        if current_user.id == user_id:
+            raise HTTPException(status_code=400, detail="Nie możesz usunąć własnego konta")
+
+        user_to_delete = db.query(User).filter(User.id == user_id).first()
+        if not user_to_delete:
+            raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+
+        db.delete(user_to_delete)
+        db.commit()
+        
+        return None
 
     return router
