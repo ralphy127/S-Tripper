@@ -8,7 +8,8 @@ from .session_service import SessionService
 from .dependencies import get_current_user
 from .settings import get_settings
 
-session_service = SessionService(get_settings().secret_key)
+settings = get_settings()
+session_service = SessionService(settings.secret_key)
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -59,12 +60,14 @@ def create_auth_router() -> APIRouter:
         
         session_token = session_service.create_token(user.id)
         
+        is_production = settings.environment == 'production'
+        
         response.set_cookie(
             key='session',
             value=session_token,
             httponly=True,
-            samesite='lax',
-            secure=False,
+            samesite='None' if is_production else 'lax',
+            secure=is_production,
             max_age=3600
         )
         
@@ -72,7 +75,13 @@ def create_auth_router() -> APIRouter:
 
     @router.post('/logout')
     def logout(response: Response):
-        response.delete_cookie(key='session')
+        is_production = settings.environment == 'production'
+
+        response.delete_cookie(
+            key='session',
+            samesite='None' if is_production else 'lax',
+            secure=is_production
+        )
         return {'message': 'Logout successful'}
 
     @router.get('/me', response_model=UserResponse)
