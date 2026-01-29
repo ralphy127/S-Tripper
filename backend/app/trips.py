@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from typing import List
 from .database import get_database_session
-from .models import User, Trip, TripMember
-from .schemas import TripCreate, TripResponse, AddMemberRequest
+from .models import User, Trip, TripMember, Expense
+from .schemas import TripCreate, TripResponse, AddMemberRequest, ExpenseCreate, ExpenseResponse
 from .dependencies import get_current_user
 from .session_service import SessionService
 from .settings import get_settings
@@ -169,5 +169,29 @@ def create_trips_router() -> APIRouter:
         database.commit()
         
         return {"message": "Member added successfully"}
+    
+    @router.post('/{trip_id}/expenses', response_model=ExpenseResponse)
+    def add_expense(
+        trip_id: int,
+        expense_data: ExpenseCreate,
+        db: Session = Depends(get_database_session),
+        current_user: User = Depends(get_current_user)
+    ):
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        if not trip:
+            raise HTTPException(status_code=404, detail="Trip not found")
+
+        new_expense = Expense(
+            title=expense_data.title,
+            amount=expense_data.amount,
+            trip_id=trip_id,
+            payer_id=current_user.id
+        )
+        
+        db.add(new_expense)
+        db.commit()
+        db.refresh(new_expense)
+        
+        return new_expense
 
     return router

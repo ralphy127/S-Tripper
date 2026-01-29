@@ -29,6 +29,22 @@ class LoginResponse(BaseModel):
     message: str
     user: UserResponse
 
+class ExpenseCreate(BaseModel):
+    title: str
+    amount: float
+
+class ExpenseResponse(BaseModel):
+    id: int
+    title: str
+    amount: float
+    payer_id: int
+    created_at: datetime
+
+    payer: Optional[UserResponse] = None
+    
+    class Config:
+        from_attributes = True
+
 class TripBase(BaseModel):
     name: str
     description: str | None = None
@@ -49,6 +65,7 @@ class TripResponse(TripBase):
     id: int
     organizer: UserPublic
     memberships: List[TripMembershipResponse] = []
+    expenses: List[ExpenseResponse] = []
 
 class AddMemberRequest(BaseModel):
     nickname: str

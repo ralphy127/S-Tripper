@@ -94,6 +94,13 @@ export const tripAPI = {
       body: JSON.stringify({ nickname }),
     });
   },
+
+  addExpense: async (tripId, title, amount) => {
+  return apiRequest(`/trips/${tripId}/expenses`, {
+    method: 'POST',
+    body: JSON.stringify({ title, amount }),
+  });
+},
 };
 
 export const adminAPI = {
